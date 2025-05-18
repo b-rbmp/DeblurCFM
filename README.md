@@ -1,5 +1,7 @@
 # Text Image Deblurring with Conditional Flow Matching
 
+![Sample Results](examples/samples_1.png)
+
 This repository contains the code and resources for a project on single-image text deblurring using Conditional Flow Matching (CFM). The goal is to restore clarity to blurred text images, a crucial task for applications like document analysis, Optical Character Recognition (OCR), and image-based search.
 
 ## Conditional Flow Matching (CFM) Overview
@@ -29,11 +31,11 @@ This results in a straight-line interpolation between samples, which contributes
 The model, a U-Net architecture `[2]` in this project, is trained to predict the time-dependent vector field $v_{t}(x;\theta)$ that transports samples from a prior distribution to the data distribution, conditioned on a blurred input image $y$. The training steps are as follows:
 
 1.  **Path Sampling**:
-    * For each sharp image $x_{1}$ and its corresponding blurred version $y$:
-        * Sample a noise image $x_{0}\sim\mathcal{N}(0,I)$.
-        * Sample a time $t \sim U[0,1]$.
-        * Compute the intermediate point $x_{t}=(1-t)x_{0}+tx_{1}+\sigma\epsilon^{\prime}$, where $\epsilon^{\prime}\sim\mathcal{N}(0,I)$ and $\sigma=0.01$.
-        * Define the target vector field $u_{t}(x_{t}|x_{0},x_{1})=x_{1}-x_{0}$.
+    - For each sharp image $x_{1}$ and its corresponding blurred version $y$:
+      - Sample a noise image $x_{0}\sim\mathcal{N}(0,I)$.
+      - Sample a time $t \sim U[0,1]$.
+      - Compute the intermediate point $x_{t}=(1-t)x_{0}+tx_{1}+\sigma\epsilon^{\prime}$, where $\epsilon^{\prime}\sim\mathcal{N}(0,I)$ and $\sigma=0.01$.
+      - Define the target vector field $u_{t}(x_{t}|x_{0},x_{1})=x_{1}-x_{0}$.
 2.  **Vector Field Prediction**: The U-Net model $v_{\theta}$ takes $x_{t}$, the time $t$ (as a continuous embedding), and the conditioning blurred image $y$ (concatenated along the channel dimension) as input. It outputs the predicted vector field $v_{\theta}(x_{t},t,y)$.
 3.  **Loss Computation**: The objective is the mean squared error between the predicted and target vector fields:
     $\mathcal{L}_{I-CFM}=\mathbb{E}_{t,x_{0},x_{1},y}[||v_{\theta}(x_{t},t,y)-(x_{1}-x_{0})||^{2}]$
@@ -53,23 +55,23 @@ Once the U-Net $v_{\theta}$ is trained to predict the conditional vector field, 
 
 The key files related to the Conditional Flow Matching implementation are:
 
-* `src/deblur/cfm/cfm.py`: Contains the core implementation of the ConditionalFlowMatcher class, including methods for computing probability paths, conditional vector fields, and sampling.
-* `src/deblur/train_cfm.py`: Script for training the CFM model for image deblurring. It handles data loading, model initialization, the training loop, validation, and checkpointing.
-* `src/deblur/train_cfm_dist.py`: Script for distributed training of the CFM model using DDP (Distributed Data Parallel).
-* `src/deblur/test_cfm.py`: Script for evaluating a trained CFM model. It loads a checkpoint, performs inference on a test set, and computes evaluation metrics.
-* `src/models/unet.py`: Defines the U-Net architecture used as the backbone for the CFM model.
-* `src/deblur/datasets/deblur.py`: Contains the `DeblurDataset` class for loading paired blurred and sharp images, and a function `make_deblur_splits` for creating training and validation dataset splits.
+- `src/deblur/cfm/cfm.py`: Contains the core implementation of the ConditionalFlowMatcher class, including methods for computing probability paths, conditional vector fields, and sampling.
+- `src/deblur/train_cfm.py`: Script for training the CFM model for image deblurring. It handles data loading, model initialization, the training loop, validation, and checkpointing.
+- `src/deblur/train_cfm_dist.py`: Script for distributed training of the CFM model using DDP (Distributed Data Parallel).
+- `src/deblur/test_cfm.py`: Script for evaluating a trained CFM model. It loads a checkpoint, performs inference on a test set, and computes evaluation metrics.
+- `src/models/unet.py`: Defines the U-Net architecture used as the backbone for the CFM model.
+- `src/deblur/datasets/deblur.py`: Contains the `DeblurDataset` class for loading paired blurred and sharp images, and a function `make_deblur_splits` for creating training and validation dataset splits.
 
 ## How to Use
 
 1.  **Dataset**: Prepare your dataset of blurred and sharp image pairs. The `DeblurDataset` class in `src/deblur/datasets/deblur.py` expects corresponding blurred and sharp images to have filenames that allow pairing (e.g., `image_001_blurred.png` and `image_001_sharp.png`). The dataset generation process in this project was inspired by various sources for text (`[4]`), fonts (`[5]`), and textures (`[6]`).
 2.  **Training**:
-    * For single GPU training, use `src/deblur/train_cfm.py`.
-    * For distributed training, use `src/deblur/train_cfm_dist.py`.
-    * Adjust parameters in the script's argument parser as needed, such as data paths, batch size, learning rate, model architecture, and CFM specific parameters (e.g., `cfm_sigma`).
+    - For single GPU training, use `src/deblur/train_cfm.py`.
+    - For distributed training, use `src/deblur/train_cfm_dist.py`.
+    - Adjust parameters in the script's argument parser as needed, such as data paths, batch size, learning rate, model architecture, and CFM specific parameters (e.g., `cfm_sigma`).
 3.  **Evaluation**:
-    * Use `src/deblur/test_cfm.py` to evaluate a trained model checkpoint.
-    * Provide paths to the checkpoint, blurred and sharp image directories, and configure ODE solver parameters.
+    - Use `src/deblur/test_cfm.py` to evaluate a trained model checkpoint.
+    - Provide paths to the checkpoint, blurred and sharp image directories, and configure ODE solver parameters.
 
 ## Results
 
@@ -79,13 +81,12 @@ Qualitatively, the CFM model successfully reconstructed text with high fidelity,
 
 For more details, please refer to the full [Report.pdf](Report.pdf).
 
-
 ## References
 
-* `[1]` Tong, A., Fatras, K., Malkin, N., Huguet, G., Zhang, Y., Rector-Brooks, J., Wolf, G., & Bengio, Y. (2024). Improving and generalizing flow-based generative models with minibatch optimal transport. *TMLR*.
-* `[2]` Dhariwal, P., & Nichol, A. (2021). Diffusion models beat gans on image synthesis. *NeurIPS*, *34*, 8780-8794.
-* `[3]` Dormand, J. R., & Prince, P. J. (1980). A family of embedded Runge-Kutta formulae. *Journal of Computational and Applied Mathematics*, *6*(1), 19-26.
-* `[4]` Project Gutenberg Literary Archive Foundation. (accessed 2025-05-09). www.gutenberg.org.
-* `[5]` Google Fonts. (accessed 2025-05-09). github.com/google/fonts.
-* `[6]` TextureLabs. (accessed 2025-05-09). texturelabs.org/.
-* `[7]` Song, J., Meng, C., & Ermon, S. (2021). Denoising diffusion implicit models. In *ICLR*.
+- `[1]` Tong, A., Fatras, K., Malkin, N., Huguet, G., Zhang, Y., Rector-Brooks, J., Wolf, G., & Bengio, Y. (2024). Improving and generalizing flow-based generative models with minibatch optimal transport. _TMLR_.
+- `[2]` Dhariwal, P., & Nichol, A. (2021). Diffusion models beat gans on image synthesis. _NeurIPS_, _34_, 8780-8794.
+- `[3]` Dormand, J. R., & Prince, P. J. (1980). A family of embedded Runge-Kutta formulae. _Journal of Computational and Applied Mathematics_, _6_(1), 19-26.
+- `[4]` Project Gutenberg Literary Archive Foundation. (accessed 2025-05-09). www.gutenberg.org.
+- `[5]` Google Fonts. (accessed 2025-05-09). github.com/google/fonts.
+- `[6]` TextureLabs. (accessed 2025-05-09). texturelabs.org/.
+- `[7]` Song, J., Meng, C., & Ermon, S. (2021). Denoising diffusion implicit models. In _ICLR_.
