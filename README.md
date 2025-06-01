@@ -14,7 +14,7 @@ The core idea of CFM is to reformulate the standard Flow Matching (FM) objective
 
 The CFM objective is:
 
-$\mathcal{L}_{CFM}(\theta)=\mathbb{E}_{t\sim U[0,1],x_{0}\sim p_{0},x_{1}\sim q,x\sim p_{t}(x|x_{0},x_{1})} [||v_{t}(x;\theta)-u_{t}(x|x_{0},x_{1})||^{2}]$
+$$\mathcal{L}_{CFM}(\theta)=\mathbb{E}_{t\sim U[0,1],x_{0}\sim p_{0},x_{1}\sim q,x\sim p_{t}(x|x_{0},x_{1})} [||v_{t}(x;\theta)-u_{t}(x|x_{0},x_{1})||^{2}]$$
 
 This project specifically adopts **Independent Conditional Flow Matching (I-CFM)**, a variant where $x_{0}$ and $x_{1}$ are sampled independently. In I-CFM, the conditional paths are Gaussian:
 
